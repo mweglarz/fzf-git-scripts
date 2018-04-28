@@ -1,5 +1,5 @@
 # fbr - checkout git branch (including remote branches), sorted by most recent commit, limit 30 last branches
-__fzf_fbr() {
+fzf-gbr() {
   local branches branch
   branches=$(git for-each-ref --count=30 --sort=-committerdate refs/heads/ --format="%(refname:short)") &&
   branch=$(echo "$branches" |
@@ -8,7 +8,7 @@ __fzf_fbr() {
 }
 
 # fco - checkout git branch/tag
-__fzf_fco() {
+fzf-gco() {
   local tags branches target
   tags=$(
     git tag | awk '{print "\x1b[31;1mtag\x1b[m\t" $1}') || return
@@ -23,7 +23,7 @@ __fzf_fco() {
 }
 
 # fco_preview - checkout git branch/tag, with a preview showing the commits between the tag/branch and HEAD
-__fzf_fco_preview() {
+fzf-gco-preview() {
   local tags branches target
   tags=$(
 git tag | awk '{print "\x1b[31;1mtag\x1b[m\t" $1}') || return
@@ -41,15 +41,28 @@ sort -u | awk '{print "\x1b[34;1mbranch\x1b[m\t" $1}') || return
 
 
 # fcoc - checkout git commit
-__fzf_fcoc() {
+fzf-gcoc() {
   local commits commit
   commits=$(git log --pretty=oneline --abbrev-commit --reverse) &&
   commit=$(echo "$commits" | fzf --tac +s +m -e) &&
   git checkout $(echo "$commit" | sed "s/ .*//")
 }
 
+alias glNoGraph='git log --color=always --format="%C(auto)%h%d %s %C(black)%C(bold)%cr% C(auto)%an" "$@"'
+local _gitLogLineToHash="echo {} | grep -o '[a-f0-9]\{7\}' | head -1"
+local _viewGitLogLine="$_gitLogLineToHash | xargs -I % sh -c 'git show --color=always % | diff-so-fancy'"
+
+# fcoc_preview - checkout git commit with previews
+fzf-gcoc-preview() {
+  local commit
+  commit=$( glNoGraph |
+    fzf --no-sort --reverse --tiebreak=index --no-multi \
+        --ansi --preview $_viewGitLogLine ) &&
+  git checkout $(echo "$commit" | sed "s/ .*//")
+}
+
 # fshow - git commit browser
-__fzf_fshow() {
+fzf-gshow() {
   git log --graph --color=always \
       --format="%C(auto)%h%d %s %C(black)%C(bold)%cr" "$@" |
   fzf --ansi --no-sort --reverse --tiebreak=index --bind=ctrl-s:toggle-sort \
@@ -60,21 +73,8 @@ __fzf_fshow() {
 FZF-EOF"
 }
 
-alias glNoGraph='git log --color=always --format="%C(auto)%h%d %s %C(black)%C(bold)%cr% C(auto)%an" "$@"'
-local _gitLogLineToHash="echo {} | grep -o '[a-f0-9]\{7\}' | head -1"
-local _viewGitLogLine="$_gitLogLineToHash | xargs -I % sh -c 'git show --color=always % | diff-so-fancy'"
-
-# fcoc_preview - checkout git commit with previews
-__fzf_fcoc_preview() {
-  local commit
-  commit=$( glNoGraph |
-    fzf --no-sort --reverse --tiebreak=index --no-multi \
-        --ansi --preview $_viewGitLogLine ) &&
-  git checkout $(echo "$commit" | sed "s/ .*//")
-}
-
 # fshow_preview - git commit browser with previews
-__fzf_fshow_preview() {
+fzf-gshow-preview() {
     glNoGraph |
         fzf --no-sort --reverse --tiebreak=index --no-multi \
             --ansi --preview $_viewGitLogLine \
@@ -85,7 +85,7 @@ __fzf_fshow_preview() {
 
 # fcs - get git commit sha
 # example usage: git rebase -i `fcs`
-__fzf_fcs() {
+fzf-gcs() {
   local commits commit
   commits=$(git log --color=always --pretty=oneline --abbrev-commit --reverse) &&
   commit=$(echo "$commits" | fzf --tac +s +m -e --ansi --reverse) &&
@@ -97,7 +97,7 @@ __fzf_fcs() {
 # enter shows you the contents of the stash
 # ctrl-d shows a diff of the stash against your current HEAD
 # ctrl-b checks the stash out as a branch, for easier merging
-__fzf_fstash() {
+fzf-gstash() {
   local out q k sha
   while out=$(
     git stash list --pretty="%C(yellow)%h %>(14)%Cgreen%cr %C(blue)%gs" |
