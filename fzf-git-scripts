@@ -1,5 +1,5 @@
 # fbr - checkout git branch (including remote branches), sorted by most recent commit, limit 30 last branches
-fbr() {
+__fzf_fbr() {
   local branches branch
   branches=$(git for-each-ref --count=30 --sort=-committerdate refs/heads/ --format="%(refname:short)") &&
   branch=$(echo "$branches" |
@@ -8,7 +8,7 @@ fbr() {
 }
 
 # fco - checkout git branch/tag
-fco() {
+__fzf_fco() {
   local tags branches target
   tags=$(
     git tag | awk '{print "\x1b[31;1mtag\x1b[m\t" $1}') || return
@@ -23,7 +23,7 @@ fco() {
 }
 
 # fco_preview - checkout git branch/tag, with a preview showing the commits between the tag/branch and HEAD
-fco_preview() {
+__fzf_fco_preview() {
   local tags branches target
   tags=$(
 git tag | awk '{print "\x1b[31;1mtag\x1b[m\t" $1}') || return
@@ -41,7 +41,7 @@ sort -u | awk '{print "\x1b[34;1mbranch\x1b[m\t" $1}') || return
 
 
 # fcoc - checkout git commit
-fcoc() {
+__fzf_fcoc() {
   local commits commit
   commits=$(git log --pretty=oneline --abbrev-commit --reverse) &&
   commit=$(echo "$commits" | fzf --tac +s +m -e) &&
@@ -49,7 +49,7 @@ fcoc() {
 }
 
 # fshow - git commit browser
-fshow() {
+__fzf_fshow() {
   git log --graph --color=always \
       --format="%C(auto)%h%d %s %C(black)%C(bold)%cr" "$@" |
   fzf --ansi --no-sort --reverse --tiebreak=index --bind=ctrl-s:toggle-sort \
@@ -65,7 +65,7 @@ local _gitLogLineToHash="echo {} | grep -o '[a-f0-9]\{7\}' | head -1"
 local _viewGitLogLine="$_gitLogLineToHash | xargs -I % sh -c 'git show --color=always % | diff-so-fancy'"
 
 # fcoc_preview - checkout git commit with previews
-fcoc_preview() {
+__fzf_fcoc_preview() {
   local commit
   commit=$( glNoGraph |
     fzf --no-sort --reverse --tiebreak=index --no-multi \
@@ -74,7 +74,7 @@ fcoc_preview() {
 }
 
 # fshow_preview - git commit browser with previews
-fshow_preview() {
+__fzf_fshow_preview() {
     glNoGraph |
         fzf --no-sort --reverse --tiebreak=index --no-multi \
             --ansi --preview $_viewGitLogLine \
@@ -85,7 +85,7 @@ fshow_preview() {
 
 # fcs - get git commit sha
 # example usage: git rebase -i `fcs`
-fcs() {
+__fzf_fcs() {
   local commits commit
   commits=$(git log --color=always --pretty=oneline --abbrev-commit --reverse) &&
   commit=$(echo "$commits" | fzf --tac +s +m -e --ansi --reverse) &&
@@ -97,7 +97,7 @@ fcs() {
 # enter shows you the contents of the stash
 # ctrl-d shows a diff of the stash against your current HEAD
 # ctrl-b checks the stash out as a branch, for easier merging
-fstash() {
+__fzf_fstash() {
   local out q k sha
   while out=$(
     git stash list --pretty="%C(yellow)%h %>(14)%Cgreen%cr %C(blue)%gs" |
