@@ -1,5 +1,3 @@
-alias _fzf_copyCommand=xclip
-# alias _fzf_copyCommand=pbcopy
 
 #
 # fbr - checkout git branch (including remote branches), sorted by most recent commit, limit 30 last branches
@@ -82,9 +80,10 @@ fzf-gshow-preview() {
     glNoGraph |
         fzf --no-sort --reverse --tiebreak=index --no-multi \
             --ansi --preview $_viewGitLogLine \
-                --header "enter to view, alt-y to copy hash" \
+                --header "enter to view, crtl-y to copy hash" \
                 --bind "enter:execute:$_viewGitLogLine   | less -R" \
-                --bind "alt-y:execute:$_gitLogLineToHash | _fzf_copyCommand"
+                # --bind "ctrl-y:execute:$_gitLogLineToHash | pbcopy"
+                --bind "ctrl-y:execute:$_gitLogLineToHash | xclip"
 }
 
 # fcs - get git commit sha
