@@ -30,9 +30,11 @@ forgit::log() {
 
 forgit::log::file() {
     file=$1
+    logOpts=${2:-""}
+    previewOpts=${3:-""}
     local cmd opts
     #cmd="echo {} |grep -Eo '[a-f0-9]+' |head -1 |xargs -I% git show --color=always % $* $forgit_emojify $forgit_fancy"
-    cmd="echo {} |grep -Eo '[a-f0-9]+' |head -1 |xargs -I% git show --color=always %"
+    cmd="echo {} |grep -Eo '[a-f0-9]+' |head -1 |xargs -I% git show --color=always $previewOpts % -- $file"
     opts="
         $FORGIT_FZF_DEFAULT_OPTS
         +s +m --tiebreak=index --preview=\"$cmd\"
@@ -40,7 +42,7 @@ forgit::log::file() {
         --bind=\"ctrl-y:execute-silent(echo {} |grep -Eo '[a-f0-9]+' | head -1 | tr -d '\n' |${FORGIT_COPY_CMD:-pbcopy})\"
         $FORGIT_LOG_FZF_OPTS
     "
-    eval "git log --graph --color=always --format='%C(yellow)%h %Cred%ad %Cblue%an%Cgreen%d %Creset%s' --date=local $file" |
+    eval "git log --graph --color=always --format='%C(yellow)%h %Cred%ad %Cblue%an%Cgreen%d %Creset%s' --date=local $logOpts -- $file" |
         FZF_DEFAULT_OPTS="$opts" fzf
 }
 
